@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 
 import Categories from "../components/Categories";
@@ -7,19 +8,23 @@ import PizzaBlock from "../components/PizzaBlock/PizzaBlock";
 import Skeleton from "../components/PizzaBlock/Skeleton";
 import Pagination from "../components/Pagination/Pagination";
 import { SearchContext } from "../App";
-import { setCategoryId } from "../redux/slices/filterSlice";
+import { setCategoryId, setCurrentPage } from "../redux/slices/filterSlice";
 
 const Home = () => {
 	const dispatch = useDispatch();
-	const { categoryId, sort } = useSelector((state) => state.filter);
+	const { categoryId, sort, currentPage } = useSelector((state) => state.filter);
 	const { searchValue } = React.useContext(SearchContext);
 
 	const [items, setItems] = React.useState([]);
 	const [isLoading, setIsLoading] = React.useState(true);
-	const [currentPage, setCurrentPage] = React.useState(1);
+	// const [currentPage, setCurrentPage] = React.useState(1);
 
 	const onChangeCategory = (id) => {
 		dispatch(setCategoryId(id));
+	};
+
+	const onChangePage = (number) => {
+		dispatch(setCurrentPage(number));
 	};
 
 	React.useEffect(() => {
@@ -30,12 +35,12 @@ const Home = () => {
 		const order = sort.sortProperty.includes("-") ? "asc" : "desc";
 		const search = searchValue ? `&search=${searchValue}` : "";
 
-		fetch(
-			`https://63999fad29930e2bb3d96b3f.mockapi.io/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`
-		)
-			.then((res) => res.json())
+		axios
+			.get(
+				`https://63999fad29930e2bb3d96b3f.mockapi.io/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`
+			)
 			.then((res) => {
-				setItems(res);
+				setItems(res.data);
 				setIsLoading(false);
 			});
 		// скролл экрана вверх
@@ -65,7 +70,7 @@ const Home = () => {
 					? [...new Array(6)].map((_, index) => <Skeleton key={index} />)
 					: /* items.map((item) => <PizzaBlock key={item.id} {...item} />) */ pizzas}
 			</div>
-			<Pagination onChangePage={(number) => setCurrentPage(number)} />
+			<Pagination currentPage={currentPage} onChangePage={onChangePage} />
 		</div>
 	);
 };
