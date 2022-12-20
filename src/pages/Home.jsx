@@ -49,6 +49,7 @@ const Home = () => {
 				setItems(res.data);
 				setIsLoading(false);
 			});
+		window.scrollTo(0, 0);
 	};
 
 	// Если изменили параметры и был первый рендер
@@ -83,7 +84,6 @@ const Home = () => {
 	// Если был первый рендер, то запрашиваем делаем запрос на сервер
 	React.useEffect(() => {
 		// скролл экрана вверх
-		window.scrollTo(0, 0);
 		if (!isSearch.current) {
 			fetchPizzas();
 		}
