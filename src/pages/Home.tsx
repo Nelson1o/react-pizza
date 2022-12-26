@@ -1,7 +1,7 @@
 import React from "react";
 import qs from "qs";
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import Categories from "../components/Categories";
 import Sort from "../components/Sort";
@@ -15,11 +15,12 @@ import {
 	setCurrentPage,
 	setFilters,
 } from "../redux/slices/filterSlice";
-import { fetchPizzas, selectPizzaData } from "../redux/slices/pizzaSlice";
+import { fetchPizzas, FetchPizzasArgs, selectPizzaData } from "../redux/slices/pizzaSlice";
+import { useAppDispatch } from "../redux/store";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const isSearch = React.useRef(false);
 	const isMounted = React.useRef(false);
 
@@ -41,13 +42,12 @@ const Home: React.FC = () => {
 		const search = searchValue ? `&search=${searchValue}` : "";
 
 		dispatch(
-			// @ts-ignore
 			fetchPizzas({
 				category,
 				sortBy,
 				order,
 				search,
-				currentPage,
+				currentPage: String(currentPage),
 			})
 		);
 
@@ -71,12 +71,18 @@ const Home: React.FC = () => {
 	// Если был первый рендер, то проверяем URL-параметры и сохраняем в Redux
 	React.useEffect(() => {
 		if (window.location.search) {
-			const params = qs.parse(window.location.search.substring(1));
-			const sort = list.find((obj) => obj.sortProperty === params.sortProperty);
+			const params = qs.parse(
+				window.location.search.substring(1)
+			) as unknown as FetchPizzasArgs;
+			const sortBy = list.find((obj) => obj.sortProperty === params.sortBy);
 			dispatch(
 				setFilters({
-					...params,
-					sort,
+					// ...params,
+					// sortBy,
+					searchValue: params.search,
+					categoryId: Number(params.category),
+					sort: sortBy || list[0],
+					currentPage: Number(params.currentPage),
 				})
 			);
 			isSearch.current = true;
@@ -97,11 +103,7 @@ const Home: React.FC = () => {
 		})
 		.map((item) => <PizzaBlock key={item.id} {...item} />); */
 
-	const pizzas = items.map((item: any) => (
-		<Link to={`/pizza/${item.id}`} key={item.id}>
-			<PizzaBlock {...item} />
-		</Link>
-	));
+	const pizzas = items.map((item: any, index) => <PizzaBlock {...item} key={index} />);
 	const skeletons = [...new Array(6)].map((_, index) => <Skeleton key={index} />);
 
 	return (
