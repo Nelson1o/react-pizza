@@ -1,7 +1,7 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
-import { selectSort, setSort, SortPropertyEnum } from "../redux/slices/filterSlice";
+import { setSort, SortPropertyEnum, SortType } from "../redux/slices/filterSlice";
 
 type ListType = {
 	name: string;
@@ -10,6 +10,10 @@ type ListType = {
 
 type PopupClick = MouseEvent & {
 	path: Node[];
+};
+
+type TSortProps = {
+	value: SortType;
 };
 
 export const list: ListType[] = [
@@ -21,10 +25,8 @@ export const list: ListType[] = [
 	{ name: "алфавиту (ASC)", sortProperty: SortPropertyEnum.TITLE_ASC },
 ];
 
-const Sort: React.FC = () => {
+const Sort: React.FC<TSortProps> = React.memo(({ value }) => {
 	const dispatch = useDispatch();
-	const sort = useSelector(selectSort);
-
 	const [isVisiblePopup, setIsVisiblePopup] = React.useState(false);
 
 	const sortRef = React.useRef<HTMLDivElement | null>(null);
@@ -64,14 +66,14 @@ const Sort: React.FC = () => {
 					/>
 				</svg>
 				<b>Сортировка по:</b>
-				<span onClick={() => setIsVisiblePopup(!isVisiblePopup)}>{sort.name}</span>
+				<span onClick={() => setIsVisiblePopup(!isVisiblePopup)}>{value.name}</span>
 			</div>
 			{isVisiblePopup && (
 				<div className="sort__popup">
 					<ul>
 						{list.map((item, index) => (
 							<li
-								className={sort.sortProperty === item.sortProperty ? "active" : ""}
+								className={value.sortProperty === item.sortProperty ? "active" : ""}
 								onClick={() => onClickListItem(item)}
 								key={index}
 							>
@@ -83,6 +85,6 @@ const Sort: React.FC = () => {
 			)}
 		</div>
 	);
-};
+});
 
 export default Sort;
